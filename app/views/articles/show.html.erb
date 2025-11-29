@@ -1,0 +1,30 @@
+<div style="background: white; padding: 40px; border-radius: 8px; border: 1px solid #e0e4e9; max-width: 800px; margin: 0 auto;">
+  <h1 style="font-size: 2.5rem; margin-bottom: 10px; color: #1d2228;"><%= @article.title %></h1>
+  
+  <div style="margin-bottom: 20px; color: #5e6d80; font-size: 0.9rem; border-bottom: 1px solid #eee; padding-bottom: 20px;">
+    <span>Por <strong><%= @article.user.email %></strong></span>
+    <span style="margin: 0 10px;">|</span>
+    <span><%= @article.created_at.strftime("%d de %B, %Y") %></span>
+    
+    <% if can? :update, @article %>
+      <span style="float: right; display: flex; align-items: center; gap: 10px;">
+        <%= link_to "Editar", edit_article_path(@article), style: "color: var(--yahoo-purple); text-decoration: none; font-weight: 600;" %>
+        <%= button_to "Eliminar", @article, method: :delete, form: { data: { turbo_confirm: "¿Estás seguro de eliminar este artículo?" } }, style: "background: none; border: none; color: #dc2626; cursor: pointer; font-weight: 600; font-size: 1rem; padding: 0;" %>
+      </span>
+    <% end %>
+  </div>
+
+  <% if @article.image.attached? %>
+    <div style="margin-bottom: 30px; background: #f8f9fa; display: flex; justify-content: center; align-items: center; border-radius: 4px; overflow: hidden;">
+      <%= image_tag @article.image, style: "width: 100%; max-height: 500px; object-fit: #{@article.image_style || 'cover'};" %>
+    </div>
+  <% end %>
+
+  <div style="font-size: 1.1rem; line-height: 1.8; color: #374151;">
+    <%= simple_format @article.content %>
+  </div>
+  
+  <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee;">
+    <%= link_to "← Volver al inicio", articles_path, style: "color: var(--yahoo-purple); text-decoration: none; font-weight: 600;" %>
+  </div>
+</div>

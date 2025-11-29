@@ -1,0 +1,44 @@
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+  <h1 style="margin: 0; font-size: 1.8rem; color: #1d2228;">Noticias Destacadas</h1>
+</div>
+
+<div id="articles">
+  <% if @articles.any? %>
+    <% @articles.each do |article| %>
+      <div class="card">
+        <% if article.image.attached? %>
+          <%= image_tag article.image, class: "card-image", style: "object-fit: #{article.image_style || 'cover'};" %>
+        <% else %>
+          <div class="card-image" style="background: #e0e4e9; display: flex; align-items: center; justify-content: center; color: #888;">
+            <span style="font-size: 2rem;">📰</span>
+          </div>
+        <% end %>
+        
+        <div class="card-content">
+          <h2 class="card-title"><%= link_to article.title, article %></h2>
+          <p style="margin: 0; color: #4b5563; line-height: 1.5;"><%= truncate(article.content, length: 140) %></p>
+          
+          <div class="card-meta">
+            <span>Por <strong><%= article.user.email.split('@').first %></strong></span>
+            <span>• <%= time_ago_in_words(article.created_at) %></span>
+            
+            <div style="float: right; display: flex; gap: 10px; align-items: center;">
+              <% if can? :update, article %>
+                <%= link_to "Editar", edit_article_path(article), style: "color: var(--yahoo-purple); font-size: 0.9rem; text-decoration: none;" %>
+                <%= button_to "Borrar", article, method: :delete, form: { data: { turbo_confirm: "¿Seguro?" } }, style: "background: none; border: none; color: #dc2626; cursor: pointer; font-size: 0.9rem; padding: 0;" %>
+                <span style="color: #ccc;">|</span>
+              <% end %>
+              <%= link_to "Leer más", article, style: "color: var(--yahoo-purple); text-decoration: none; font-weight: 600;" %>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  <% else %>
+    <div style="text-align: center; padding: 60px; background: white; border-radius: 8px; border: 1px solid #e0e4e9;">
+      <h3>No hay noticias aún</h3>
+      <p>Sé el primero en publicar algo interesante.</p>
+      <%= link_to "Crear Artículo", new_article_path, class: "btn-primary", style: "margin-top: 10px; display: inline-block;" %>
+    </div>
+  <% end %>
+</div>

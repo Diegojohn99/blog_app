@@ -1,0 +1,64 @@
+<div style="max-width: 1000px; margin: 0 auto;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <h1 style="margin: 0; color: #1d2228;">Panel de Control</h1>
+    <span style="background: #e0e7ff; color: var(--yahoo-purple); padding: 4px 12px; border-radius: 12px; font-weight: 600; font-size: 0.9rem;">
+      Rol: <%= current_user.role.capitalize %>
+    </span>
+  </div>
+
+  <!-- Stats Cards -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px;">
+    <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e0e4e9; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+      <h3 style="margin: 0 0 10px 0; color: #5e6d80; font-size: 0.9rem; text-transform: uppercase;">Total Artículos</h3>
+      <p style="margin: 0; font-size: 2.5rem; font-weight: 700; color: var(--yahoo-purple);"><%= @total_articles %></p>
+    </div>
+    <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e0e4e9; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+      <h3 style="margin: 0 0 10px 0; color: #5e6d80; font-size: 0.9rem; text-transform: uppercase;">Total Usuarios</h3>
+      <p style="margin: 0; font-size: 2.5rem; font-weight: 700; color: var(--yahoo-blue);"><%= @total_users %></p>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+    <!-- My Articles -->
+    <div style="background: white; padding: 25px; border-radius: 8px; border: 1px solid #e0e4e9;">
+      <h2 style="margin-top: 0; border-bottom: 2px solid var(--yahoo-purple); padding-bottom: 10px; display: inline-block;">Mis Publicaciones</h2>
+      
+      <% if @user_articles.any? %>
+        <ul style="list-style: none; padding: 0; margin-top: 20px;">
+          <% @user_articles.each do |article| %>
+            <li style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <%= link_to article.title, article, style: "font-weight: 600; color: #1d2228; text-decoration: none;" %>
+                <div style="font-size: 0.8rem; color: #888; margin-top: 4px;"><%= article.created_at.strftime("%d/%m/%Y") %></div>
+              </div>
+              <div>
+                <%= link_to "Editar", edit_article_path(article), style: "font-size: 0.85rem; color: var(--yahoo-purple); margin-right: 10px;" %>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p style="color: #666; font-style: italic;">No has publicado nada aún.</p>
+        <%= link_to "Crear primer artículo", new_article_path, class: "btn-primary", style: "font-size: 0.9rem;" %>
+      <% end %>
+    </div>
+
+    <!-- Recent Users (Admin Only) -->
+    <% if @recent_users %>
+      <div style="background: white; padding: 25px; border-radius: 8px; border: 1px solid #e0e4e9;">
+        <h2 style="margin-top: 0; border-bottom: 2px solid var(--yahoo-blue); padding-bottom: 10px; display: inline-block;">Usuarios Recientes</h2>
+        
+        <ul style="list-style: none; padding: 0; margin-top: 20px;">
+          <% @recent_users.each do |user| %>
+            <li style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between;">
+              <span style="color: #333;"><%= user.email %></span>
+              <span style="background: #f3f4f6; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; color: #555;">
+                <%= user.role %>
+              </span>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+  </div>
+</div>

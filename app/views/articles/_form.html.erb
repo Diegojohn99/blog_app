@@ -1,0 +1,34 @@
+<%= form_with(model: article) do |form| %>
+  <% if article.errors.any? %>
+    <div style="color: red">
+      <h2><%= pluralize(article.errors.count, "error") %> prohibieron guardar este artículo:</h2>
+      <ul>
+        <% article.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :title, "Título", style: "display: block" %>
+    <%= form.text_field :title, style: "width: 100%; padding: 0.5rem;" %>
+  </div>
+
+  <div>
+    <%= form.label :content, "Contenido", style: "display: block" %>
+    <%= form.text_area :content, rows: 10, style: "width: 100%; padding: 0.5rem;" %>
+  </div>
+
+  <div>
+    <%= form.label :image, "Imagen de Portada", style: "display: block" %>
+    <%= form.file_field :image, style: "width: 100%; padding: 0.5rem; margin-bottom: 10px;" %>
+    
+    <%= form.label :image_style, "Estilo de Imagen", style: "display: block; font-size: 0.9rem;" %>
+    <%= form.select :image_style, [["Recortar (Rellenar espacio)", "cover"], ["Completa (Ver toda la imagen)", "contain"]], {}, { style: "width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #ccc;" } %>
+  </div>
+
+  <div>
+    <%= form.submit "Guardar Artículo", style: "margin-top: 1rem; padding: 0.5rem 1rem; background: #007bff; color: white; border: none; border-radius: 4px;" %>
+  </div>
+<% end %>

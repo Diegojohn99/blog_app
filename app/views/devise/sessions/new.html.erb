@@ -1,0 +1,30 @@
+<div class="auth-wrapper">
+  <h2>Iniciar Sesión</h2>
+
+  <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+    <div class="form-group">
+      <%= f.label :email %>
+      <%= f.email_field :email, autofocus: true, autocomplete: "email", placeholder: "ejemplo@correo.com" %>
+    </div>
+
+    <div class="form-group">
+      <%= f.label :password, "Contraseña" %>
+      <%= f.password_field :password, autocomplete: "current-password", placeholder: "••••••••" %>
+    </div>
+
+    <% if devise_mapping.rememberable? %>
+      <div class="form-group" style="display: flex; align-items: center;">
+        <%= f.check_box :remember_me, style: "width: auto; margin-right: 8px;" %>
+        <%= f.label :remember_me, style: "margin: 0; font-weight: 400;" %>
+      </div>
+    <% end %>
+
+    <div class="actions">
+      <%= f.submit "Entrar", class: "btn-primary", style: "width: 100%; padding: 12px; border-radius: 4px;" %>
+    </div>
+  <% end %>
+
+  <div style="margin-top: 20px; text-align: center; font-size: 0.9rem;">
+    <%= render "devise/shared/links" %>
+  </div>
+</div>

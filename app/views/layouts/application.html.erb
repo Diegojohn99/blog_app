@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>BlogApp - Tu Portal de Ideas</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --yahoo-purple: #6001d2;
+        --yahoo-purple-hover: #5000b0;
+        --yahoo-blue: #1d4ed8;
+        --bg-color: #ffffff;
+        --bg-secondary: #f0f3f5;
+        --text-main: #1d2228;
+        --text-muted: #5e6d80;
+        --border-color: #e0e4e9;
+        --card-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        --header-height: 60px;
+      }
+
+      body { 
+        font-family: 'Roboto', sans-serif; 
+        margin: 0; 
+        padding: 0; 
+        background-color: var(--bg-secondary);
+        color: var(--text-main);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* Header Style */
+      nav { 
+        background: #ffffff; 
+        height: var(--header-height);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      .nav-content {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo {
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--yahoo-purple);
+        text-decoration: none;
+        letter-spacing: -1px;
+      }
+      .logo span { color: var(--yahoo-purple); }
+
+      .nav-links { display: flex; align-items: center; gap: 20px; }
+      .nav-links a { 
+        color: var(--text-main); 
+        text-decoration: none; 
+        font-weight: 500;
+        font-size: 0.95rem;
+      }
+      .nav-links a:hover { color: var(--yahoo-purple); text-decoration: underline; }
+
+      .btn-primary {
+        background: var(--yahoo-purple);
+        color: white !important;
+        padding: 8px 16px;
+        border-radius: 18px; /* Pill shape */
+        text-decoration: none !important;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .btn-primary:hover { background: var(--yahoo-purple-hover); }
+
+      .btn-outline {
+        border: 2px solid var(--yahoo-purple);
+        color: var(--yahoo-purple) !important;
+        padding: 6px 14px;
+        border-radius: 18px;
+        text-decoration: none !important;
+        font-weight: 600;
+      }
+      .btn-outline:hover { background: #f3e5ff; }
+
+      .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+      
+      .notice, .alert { 
+        padding: 12px 20px; 
+        border-radius: 4px; 
+        margin-bottom: 20px; 
+        font-size: 0.9rem;
+      }
+      .notice { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+      .alert { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+      /* Forms Global */
+      .form-group { margin-bottom: 20px; }
+      label { 
+        display: block; 
+        margin-bottom: 8px; 
+        font-weight: 500; 
+        color: var(--text-main);
+      }
+      input[type="text"], input[type="email"], input[type="password"], textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1rem;
+        background: #fff;
+        color: #000; /* Ensure high contrast */
+        box-sizing: border-box;
+      }
+      input:focus, textarea:focus {
+        outline: none;
+        border-color: var(--yahoo-purple);
+        box-shadow: 0 0 0 2px rgba(96, 1, 210, 0.2);
+      }
+
+      /* Card Style (News Feed) */
+      .card {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: row; /* Horizontal layout like news */
+      }
+      .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-color: #d1d5db; }
+      
+      .card-image {
+        width: 200px;
+        height: 150px;
+        object-fit: cover;
+        flex-shrink: 0;
+      }
+      
+      .card-content { padding: 20px; flex-grow: 1; }
+      .card-title { margin: 0 0 10px 0; font-size: 1.2rem; }
+      .card-title a { color: var(--yahoo-purple); text-decoration: none; font-weight: 700; }
+      .card-title a:hover { text-decoration: underline; }
+      
+      .card-meta { font-size: 0.85rem; color: var(--text-muted); margin-top: 10px; }
+      
+      /* Auth Pages Wrapper */
+      .auth-wrapper {
+        max-width: 400px;
+        margin: 40px auto;
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border: 1px solid var(--border-color);
+      }
+      .auth-wrapper h2 { margin-top: 0; color: var(--text-main); text-align: center; margin-bottom: 20px; }
+    </style>
+  </head>
+
+  <body>
+    <nav>
+      <div class="nav-content">
+        <%= link_to root_path, class: "logo" do %>
+          Blog<span>App</span>!
+        <% end %>
+        
+        <div class="nav-links">
+          <% if user_signed_in? %>
+            <%= link_to "Inicio", articles_path %>
+            <% if can? :read, :dashboard %>
+              <%= link_to "Dashboard", dashboard_path %>
+            <% end %>
+            
+            <div style="height: 24px; width: 1px; background: #e0e4e9; margin: 0 10px;"></div>
+            
+            <%= link_to "Escribir", new_article_path, class: "btn-primary" %>
+            <%= link_to "Salir", destroy_user_session_path, data: { turbo_method: :delete }, style: "color: var(--text-muted); font-size: 0.9rem;" %>
+          <% else %>
+            <%= link_to "Entrar", new_user_session_path, class: "btn-outline" %>
+            <%= link_to "Crear cuenta", new_user_registration_path, class: "btn-primary" %>
+          <% end %>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <% if notice %>
+        <p class="notice"><%= notice %></p>
+      <% end %>
+      
+      <% if alert %>
+        <p class="alert"><%= alert %></p>
+      <% end %>
+
+      <%= yield %>
+    </div>
+  </body>
+</html>

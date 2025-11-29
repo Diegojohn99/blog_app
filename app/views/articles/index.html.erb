@@ -8,6 +8,8 @@
       <div class="card">
         <% if article.image.attached? %>
           <%= image_tag article.image, class: "card-image", style: "object-fit: #{article.image_style || 'cover'};" %>
+        <% elsif article.image_url.present? %>
+          <%= image_tag article.image_url, class: "card-image", style: "object-fit: #{article.image_style || 'cover'};" %>
         <% else %>
           <div class="card-image" style="background: #e0e4e9; display: flex; align-items: center; justify-content: center; color: #888;">
             <span style="font-size: 2rem;">📰</span>

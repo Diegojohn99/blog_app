@@ -10,16 +10,22 @@
     </div>
 
     <div class="form-group">
-      <%= f.label :password %>
+      <%= f.label :password, "Contraseña" %>
       <% if @minimum_password_length %>
       <em style="font-size: 0.8rem; color: #666;">(<%= @minimum_password_length %> caracteres mínimo)</em>
       <% end %>
-      <%= f.password_field :password, autocomplete: "new-password" %>
+      <div style="position: relative;">
+        <%= f.password_field :password, autocomplete: "new-password", id: "user_password" %>
+        <button type="button" onclick="generatePassword()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: var(--yahoo-purple); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">
+          Generar
+        </button>
+      </div>
+      <div id="password-suggestions" style="margin-top: 8px; font-size: 0.85rem; color: #666;"></div>
     </div>
 
     <div class="form-group">
-      <%= f.label :password_confirmation %>
-      <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
+      <%= f.label :password_confirmation, "Confirmar Contraseña" %>
+      <%= f.password_field :password_confirmation, autocomplete: "new-password", id: "user_password_confirmation" %>
     </div>
 
     <div class="actions">
@@ -31,3 +37,26 @@
     <%= render "devise/shared/links" %>
   </div>
 </div>
+
+<script>
+function generatePassword() {
+  const length = 12;
+  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+  let password = "";
+  for (let i = 0; i < length; i++) {
+    password += charset.charAt(Math.floor(Math.random() * charset.length));
+  }
+  
+  document.getElementById('user_password').value = password;
+  document.getElementById('user_password_confirmation').value = password;
+  document.getElementById('user_password').type = 'text';
+  
+  document.getElementById('password-suggestions').innerHTML = 
+    '<span style="color: green;">✓ Contraseña generada: <strong>' + password + '</strong></span><br>' +
+    '<small>Copia esta contraseña antes de continuar</small>';
+  
+  setTimeout(() => {
+    document.getElementById('user_password').type = 'password';
+  }, 3000);
+}
+</script>

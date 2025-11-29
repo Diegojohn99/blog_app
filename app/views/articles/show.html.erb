@@ -18,6 +18,10 @@
     <div style="margin-bottom: 30px; background: #f8f9fa; display: flex; justify-content: center; align-items: center; border-radius: 4px; overflow: hidden;">
       <%= image_tag @article.image, style: "width: 100%; max-height: 500px; object-fit: #{@article.image_style || 'cover'};" %>
     </div>
+  <% elsif @article.image_url.present? %>
+    <div style="margin-bottom: 30px; background: #f8f9fa; display: flex; justify-content: center; align-items: center; border-radius: 4px; overflow: hidden;">
+      <%= image_tag @article.image_url, style: "width: 100%; max-height: 500px; object-fit: #{@article.image_style || 'cover'};" %>
+    </div>
   <% end %>
 
   <div style="font-size: 1.1rem; line-height: 1.8; color: #374151;">

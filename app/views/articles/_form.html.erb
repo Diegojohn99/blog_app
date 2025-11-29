@@ -22,13 +22,231 @@
 
   <div>
     <%= form.label :image, "Imagen de Portada", style: "display: block" %>
-    <%= form.file_field :image, style: "width: 100%; padding: 0.5rem; margin-bottom: 10px;" %>
     
-    <%= form.label :image_style, "Estilo de Imagen", style: "display: block; font-size: 0.9rem;" %>
-    <%= form.select :image_style, [["Recortar (Rellenar espacio)", "cover"], ["Completa (Ver toda la imagen)", "contain"]], {}, { style: "width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #ccc;" } %>
+    <!-- Tabs for Image Upload or URL -->
+    <div style="margin-bottom: 10px;">
+      <button type="button" onclick="showImageTab('upload')" id="tab-upload" style="padding: 8px 16px; background: var(--yahoo-purple); color: white; border: none; border-radius: 4px 0 0 4px; cursor: pointer;">
+        Subir Archivo
+      </button>
+      <button type="button" onclick="showImageTab('url')" id="tab-url" style="padding: 8px 16px; background: #e0e4e9; color: #333; border: none; border-radius: 0 4px 4px 0; cursor: pointer;">
+        URL de Imagen
+      </button>
+    </div>
+
+    <!-- Upload Tab -->
+    <div id="image-upload-tab">
+      <%= form.file_field :image, accept: "image/*", onchange: "previewImage(event)", style: "width: 100%; padding: 0.5rem; margin-bottom: 10px;" %>
+    </div>
+
+    <!-- URL Tab -->
+    <div id="image-url-tab" style="display: none;">
+      <%= form.text_field :image_url, id: "image-url-input", placeholder: "https://ejemplo.com/imagen.jpg", style: "width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px;" %>
+      <button type="button" onclick="loadImageFromUrl()" style="padding: 8px 16px; background: var(--yahoo-purple); color: white; border: none; border-radius: 4px; cursor: pointer;">
+        Cargar Imagen
+      </button>
+    </div>
+
+    <!-- Image Cropper -->
+    <div id="image-cropper-container" style="display: none; margin-top: 20px; border: 2px solid #6001d2; border-radius: 8px; padding: 20px; background: #f8f9fa;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h4 style="margin: 0;">Recortar Imagen</h4>
+        <button type="button" onclick="closeCropper()" style="background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">
+          Cancelar
+        </button>
+      </div>
+      
+      <div style="max-width: 100%; max-height: 500px; overflow: hidden; background: #000; border-radius: 4px;">
+        <img id="crop-image" src="" style="max-width: 100%; display: block;">
+      </div>
+      
+      <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <button type="button" onclick="cropImage()" style="background: var(--yahoo-purple); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+          ✓ Aplicar Recorte
+        </button>
+        <button type="button" onclick="cropper.rotate(-90)" style="background: #4b5563; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+          ↶ Rotar Izq
+        </button>
+        <button type="button" onclick="cropper.rotate(90)" style="background: #4b5563; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+          ↷ Rotar Der
+        </button>
+        <button type="button" onclick="cropper.scaleX(-cropper.getData().scaleX || -1)" style="background: #4b5563; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+          ↔ Voltear H
+        </button>
+        <button type="button" onclick="cropper.scaleY(-cropper.getData().scaleY || -1)" style="background: #4b5563; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+          ↕ Voltear V
+        </button>
+        <button type="button" onclick="cropper.reset()" style="background: #6b7280; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+          ⟲ Resetear
+        </button>
+      </div>
+      
+      <div style="margin-top: 15px; padding: 12px; background: #e0e7ff; border-radius: 4px; font-size: 0.9rem;">
+        <strong>💡 Instrucciones:</strong>
+        <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+          <li>Arrastra las esquinas para ajustar el área de recorte</li>
+          <li>Mueve el área de recorte arrastrándola</li>
+          <li>Usa la rueda del mouse para hacer zoom</li>
+          <li>Haz clic en "Aplicar Recorte" cuando estés satisfecho</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Final Preview -->
+    <div id="final-preview-container" style="display: none; margin-top: 15px; border: 2px dashed #ccc; border-radius: 8px; padding: 20px; background: #f8f9fa;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h4 style="margin: 0;">Vista Final</h4>
+        <button type="button" onclick="editCrop()" style="background: var(--yahoo-purple); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">
+          ✏️ Editar Recorte
+        </button>
+      </div>
+      
+      <%= form.label :image_style, "Estilo de Visualización", style: "display: block; font-size: 0.9rem; margin-bottom: 8px;" %>
+      <%= form.select :image_style, 
+          [["Recortar (Rellenar espacio)", "cover"], ["Completa (Ver toda la imagen)", "contain"]], 
+          {}, 
+          { 
+            id: "image-style-select",
+            onchange: "updateFinalPreviewStyle()",
+            style: "width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #ccc; margin-bottom: 15px;" 
+          } %>
+      
+      <div style="position: relative; width: 100%; height: 200px; background: #e9ecef; border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+        <img id="final-preview" src="" alt="Preview" style="max-width: 100%; max-height: 100%; object-fit: cover;">
+      </div>
+      
+      <input type="hidden" id="cropped-image-data" name="article[cropped_image]">
+    </div>
   </div>
 
   <div>
-    <%= form.submit "Guardar Artículo", style: "margin-top: 1rem; padding: 0.5rem 1rem; background: #007bff; color: white; border: none; border-radius: 4px;" %>
+    <%= form.submit "Guardar Artículo", style: "margin-top: 1rem; padding: 0.5rem 1rem; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;" %>
   </div>
 <% end %>
+
+<!-- Cropper.js CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+
+<script>
+let cropper = null;
+let originalImageSrc = null;
+
+function showImageTab(tab) {
+  const uploadTab = document.getElementById('image-upload-tab');
+  const urlTab = document.getElementById('image-url-tab');
+  const uploadBtn = document.getElementById('tab-upload');
+  const urlBtn = document.getElementById('tab-url');
+  
+  if (tab === 'upload') {
+    uploadTab.style.display = 'block';
+    urlTab.style.display = 'none';
+    uploadBtn.style.background = 'var(--yahoo-purple)';
+    uploadBtn.style.color = 'white';
+    urlBtn.style.background = '#e0e4e9';
+    urlBtn.style.color = '#333';
+  } else {
+    uploadTab.style.display = 'none';
+    urlTab.style.display = 'block';
+    uploadBtn.style.background = '#e0e4e9';
+    uploadBtn.style.color = '#333';
+    urlBtn.style.background = 'var(--yahoo-purple)';
+    urlBtn.style.color = 'white';
+  }
+}
+
+function previewImage(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      originalImageSrc = e.target.result;
+      showCropper(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function loadImageFromUrl() {
+  const url = document.getElementById('image-url-input').value;
+  if (url) {
+    originalImageSrc = url;
+    showCropper(url);
+  }
+}
+
+function showCropper(src) {
+  const container = document.getElementById('image-cropper-container');
+  const cropImage = document.getElementById('crop-image');
+  
+  // Hide other containers
+  document.getElementById('final-preview-container').style.display = 'none';
+  
+  // Show cropper
+  container.style.display = 'block';
+  cropImage.src = src;
+  
+  // Destroy previous cropper if exists
+  if (cropper) {
+    cropper.destroy();
+  }
+  
+  // Initialize new cropper
+  cropper = new Cropper(cropImage, {
+    aspectRatio: NaN, // Free aspect ratio
+    viewMode: 1,
+    dragMode: 'move',
+    autoCropArea: 0.8,
+    restore: false,
+    guides: true,
+    center: true,
+    highlight: true,
+    cropBoxMovable: true,
+    cropBoxResizable: true,
+    toggleDragModeOnDblclick: false,
+  });
+}
+
+function cropImage() {
+  if (!cropper) return;
+  
+  const canvas = cropper.getCroppedCanvas({
+    maxWidth: 1920,
+    maxHeight: 1920,
+    fillColor: '#fff',
+    imageSmoothingEnabled: true,
+    imageSmoothingQuality: 'high',
+  });
+  
+  const croppedImageData = canvas.toDataURL('image/jpeg', 0.9);
+  
+  // Show final preview
+  document.getElementById('final-preview').src = croppedImageData;
+  document.getElementById('cropped-image-data').value = croppedImageData;
+  document.getElementById('final-preview-container').style.display = 'block';
+  
+  // Hide cropper
+  document.getElementById('image-cropper-container').style.display = 'none';
+  
+  updateFinalPreviewStyle();
+}
+
+function editCrop() {
+  if (originalImageSrc) {
+    showCropper(originalImageSrc);
+  }
+}
+
+function closeCropper() {
+  document.getElementById('image-cropper-container').style.display = 'none';
+  if (cropper) {
+    cropper.destroy();
+    cropper = null;
+  }
+}
+
+function updateFinalPreviewStyle() {
+  const preview = document.getElementById('final-preview');
+  const style = document.getElementById('image-style-select').value;
+  preview.style.objectFit = style;
+}
+</script>

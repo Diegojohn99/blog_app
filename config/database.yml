@@ -25,3 +25,6 @@ production:
   cache:
     url: <%= ENV['DATABASE_URL'].presence %>
     pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  queue:
+    url: <%= ENV['DATABASE_URL'].presence %>
+    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>

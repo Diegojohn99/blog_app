@@ -33,6 +33,17 @@
       </button>
     </div>
 
+    <!-- User Instructions -->
+    <div style="background: #e0e7ff; border-left: 4px solid var(--yahoo-purple); padding: 12px 16px; margin-bottom: 15px; border-radius: 4px; font-size: 0.9rem;">
+      <strong>💡 Consejos para subir imágenes:</strong>
+      <ul style="margin: 8px 0 0 0; padding-left: 20px; line-height: 1.6;">
+        <li><strong>Formatos:</strong> JPG, PNG, GIF, WEBP</li>
+        <li><strong>Tamaño máximo:</strong> 10 MB (recomendado: menos de 2 MB)</li>
+        <li><strong>URLs válidas:</strong> Imgur (i.imgur.com), Unsplash, URLs directas a imágenes</li>
+        <li><strong>URLs que NO funcionan:</strong> Google Drive, Facebook, Instagram</li>
+      </ul>
+    </div>
+
     <!-- Upload Tab -->
     <div id="image-upload-tab">
       <%= form.file_field :image, accept: "image/*", onchange: "previewImage(event)", style: "width: 100%; padding: 0.5rem; margin-bottom: 10px;" %>
@@ -333,7 +344,10 @@ function showInitialPreview(src) {
 }
 
 function startCropping() {
-  if (!originalImageSrc) return;
+  if (!originalImageSrc) {
+    alert('⚠️ No hay imagen para recortar.');
+    return;
+  }
   
   // Hide initial preview
   document.getElementById('initial-preview-container').style.display = 'none';
@@ -390,29 +404,32 @@ function showCropper(src) {
   const container = document.getElementById('image-cropper-container');
   const cropImage = document.getElementById('crop-image');
   
-  // Show cropper
+  // Ensure image is loaded before initializing cropper
+  cropImage.onload = function() {
+    // Destroy previous cropper if exists
+    if (cropper) {
+      cropper.destroy();
+    }
+    
+    // Initialize new cropper
+    cropper = new Cropper(cropImage, {
+      aspectRatio: NaN, // Free aspect ratio
+      viewMode: 1,
+      dragMode: 'move',
+      autoCropArea: 0.8,
+      restore: false,
+      guides: true,
+      center: true,
+      highlight: true,
+      cropBoxMovable: true,
+      cropBoxResizable: true,
+      toggleDragModeOnDblclick: false,
+    });
+  };
+  
+  // Show cropper container
   container.style.display = 'block';
   cropImage.src = src;
-  
-  // Destroy previous cropper if exists
-  if (cropper) {
-    cropper.destroy();
-  }
-  
-  // Initialize new cropper
-  cropper = new Cropper(cropImage, {
-    aspectRatio: NaN, // Free aspect ratio
-    viewMode: 1,
-    dragMode: 'move',
-    autoCropArea: 0.8,
-    restore: false,
-    guides: true,
-    center: true,
-    highlight: true,
-    cropBoxMovable: true,
-    cropBoxResizable: true,
-    toggleDragModeOnDblclick: false,
-  });
 }
 
 function cropImage() {
@@ -491,6 +508,10 @@ function updateFinalPreviewStyle() {
   preview.style.objectFit = style;
 }
 </script>
+
+<!-- Cropper.js CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 
 <style>
   /* Responsive styles for the form */

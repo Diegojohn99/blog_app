@@ -44,9 +44,12 @@ class ArticlesController < ApplicationController
     # Handle cropped image (base64 data)
     if params[:article][:cropped_image].present?
       image_error = process_cropped_image(@article, params[:article][:cropped_image])
-    # Handle image URL
+    # Handle image URL - ONLY if it changed or if we don't have an image yet
     elsif params[:article][:image_url].present? && !params[:article][:image].present?
-      image_error = process_image_url(@article, params[:article][:image_url])
+      # Check if URL changed or if we need to attach a new image
+      if params[:article][:image_url] != @article.image_url || !@article.image.attached?
+        image_error = process_image_url(@article, params[:article][:image_url])
+      end
     end
     
     if image_error

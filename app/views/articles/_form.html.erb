@@ -91,8 +91,34 @@
       </div>
     </div>
 
-    <!-- Final Preview -->
-    <div id="final-preview-container" style="display: none; margin-top: 15px; border: 2px dashed #ccc; border-radius: 8px; padding: 20px; background: #f8f9fa;">
+    <!-- Initial Preview (shown first) -->
+    <div id="initial-preview-container" style="display: none; margin-top: 15px; border: 2px dashed #6001d2; border-radius: 8px; padding: 20px; background: #f8f9fa;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h4 style="margin: 0;">Vista Previa</h4>
+        <button type="button" onclick="removeImage()" style="background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">
+          ✕ Quitar
+        </button>
+      </div>
+      
+      <div style="position: relative; width: 100%; max-height: 400px; background: #e9ecef; border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+        <img id="initial-preview" src="" alt="Preview" style="max-width: 100%; max-height: 400px; object-fit: contain;">
+      </div>
+      
+      <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <button type="button" onclick="startCropping()" style="background: var(--yahoo-purple); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+          ✂️ Recortar Imagen
+        </button>
+        <button type="button" onclick="useImageAsIs()" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+          ✓ Usar Imagen Completa
+        </button>
+      </div>
+      
+      <p style="margin-top: 10px; font-size: 0.9rem; color: #6b7280;">
+        Puedes usar la imagen tal como está o recortarla a tu gusto.
+      </p>
+    </div>
+
+    <!-- Final Preview -->    <div id="final-preview-container" style="display: none; margin-top: 15px; border: 2px dashed #ccc; border-radius: 8px; padding: 20px; background: #f8f9fa;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <h4 style="margin: 0;">Vista Final</h4>
         <button type="button" onclick="editCrop()" style="background: var(--yahoo-purple); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">
@@ -122,6 +148,26 @@
     <%= form.submit "Guardar Artículo", style: "margin-top: 1rem; padding: 0.5rem 1rem; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;" %>
   </div>
 <% end %>
+
+<script>
+  // Handle form submission to prevent sending both file and cropped data
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        const croppedImageData = document.getElementById('cropped-image-data');
+        const fileInput = document.querySelector('input[type="file"]');
+        
+        // If we have cropped image data, clear the file input to avoid conflicts
+        if (croppedImageData && croppedImageData.value) {
+          if (fileInput) {
+            fileInput.value = '';
+          }
+        }
+      });
+    }
+  });
+</script>
 
 <!-- Cropper.js CDN -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
@@ -157,29 +203,158 @@ function showImageTab(tab) {
 function previewImage(event) {
   const file = event.target.files[0];
   if (file) {
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      alert('❌ Formato de archivo no válido. Por favor, selecciona una imagen (JPG, PNG, GIF o WebP).');
+      event.target.value = ''; // Clear the input
+      return;
+    }
+    
+    // Validate file size (10MB max)
+    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+    if (file.size > maxSize) {
+      alert('❌ La imagen es demasiado grande. Por favor, selecciona una imagen menor a 10MB.');
+      event.target.value = ''; // Clear the input
+      return;
+    }
+    
+    // Clear any previous data
+    document.getElementById('cropped-image-data').value = '';
+    document.getElementById('final-preview-container').style.display = 'none';
+    document.getElementById('image-cropper-container').style.display = 'none';
+    
     const reader = new FileReader();
     reader.onload = function(e) {
       originalImageSrc = e.target.result;
-      showCropper(e.target.result);
+      showInitialPreview(e.target.result);
+    };
+    reader.onerror = function() {
+      alert('❌ Error al leer el archivo. Por favor, intenta con otra imagen.');
+      event.target.value = '';
     };
     reader.readAsDataURL(file);
   }
 }
 
 function loadImageFromUrl() {
-  const url = document.getElementById('image-url-input').value;
-  if (url) {
-    originalImageSrc = url;
-    showCropper(url);
+  const url = document.getElementById('image-url-input').value.trim();
+  
+  if (!url) {
+    alert('⚠️ Por favor, ingresa una URL de imagen.');
+    return;
   }
+  
+  // Basic URL validation
+  try {
+    const urlObj = new URL(url);
+    if (!urlObj.protocol.startsWith('http')) {
+      alert('❌ URL inválida. Por favor, usa una URL que comience con http:// o https://');
+      return;
+    }
+  } catch (e) {
+    alert('❌ URL inválida. Por favor, verifica la URL e intenta nuevamente.');
+    return;
+  }
+  
+  // Show loading indicator
+  const loadBtn = event.target;
+  const originalText = loadBtn.textContent;
+  loadBtn.textContent = 'Cargando...';
+  loadBtn.disabled = true;
+  
+  // Clear any previous data
+  document.getElementById('cropped-image-data').value = '';
+  document.getElementById('final-preview-container').style.display = 'none';
+  document.getElementById('image-cropper-container').style.display = 'none';
+  
+  // Try to load the image
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  
+  img.onload = function() {
+    originalImageSrc = url;
+    showInitialPreview(url);
+    loadBtn.textContent = originalText;
+    loadBtn.disabled = false;
+  };
+  
+  img.onerror = function() {
+    alert('❌ No se pudo cargar la imagen desde la URL. Verifica que:\n\n' +
+          '• La URL sea correcta y accesible\n' +
+          '• La imagen exista en esa ubicación\n' +
+          '• No haya restricciones de CORS\n\n' +
+          'Intenta con otra URL o sube la imagen desde tu dispositivo.');
+    loadBtn.textContent = originalText;
+    loadBtn.disabled = false;
+  };
+  
+  img.src = url;
+}
+
+function showInitialPreview(src) {
+  // Hide other containers
+  document.getElementById('image-cropper-container').style.display = 'none';
+  document.getElementById('final-preview-container').style.display = 'none';
+  
+  // Show initial preview
+  const container = document.getElementById('initial-preview-container');
+  const previewImg = document.getElementById('initial-preview');
+  
+  previewImg.src = src;
+  container.style.display = 'block';
+}
+
+function startCropping() {
+  if (!originalImageSrc) return;
+  
+  // Hide initial preview
+  document.getElementById('initial-preview-container').style.display = 'none';
+  
+  showCropper(originalImageSrc);
+}
+
+function useImageAsIs() {
+  if (!originalImageSrc) return;
+  
+  // Hide initial preview
+  document.getElementById('initial-preview-container').style.display = 'none';
+  
+  // Show final preview with the original image
+  document.getElementById('final-preview').src = originalImageSrc;
+  document.getElementById('cropped-image-data').value = originalImageSrc;
+  document.getElementById('final-preview-container').style.display = 'block';
+  
+  updateFinalPreviewStyle();
+}
+
+function removeImage() {
+  // Clear everything
+  document.getElementById('initial-preview-container').style.display = 'none';
+  document.getElementById('image-cropper-container').style.display = 'none';
+  document.getElementById('final-preview-container').style.display = 'none';
+  
+  // Clear inputs
+  const fileInput = document.querySelector('input[type="file"]');
+  if (fileInput) fileInput.value = '';
+  
+  const urlInput = document.getElementById('image-url-input');
+  if (urlInput) urlInput.value = '';
+  
+  // Clear data
+  document.getElementById('cropped-image-data').value = '';
+  
+  if (cropper) {
+    cropper.destroy();
+    cropper = null;
+  }
+  
+  originalImageSrc = null;
 }
 
 function showCropper(src) {
   const container = document.getElementById('image-cropper-container');
   const cropImage = document.getElementById('crop-image');
-  
-  // Hide other containers
-  document.getElementById('final-preview-container').style.display = 'none';
   
   // Show cropper
   container.style.display = 'block';
@@ -207,27 +382,40 @@ function showCropper(src) {
 }
 
 function cropImage() {
-  if (!cropper) return;
+  if (!cropper) {
+    alert('⚠️ No hay imagen para recortar.');
+    return;
+  }
   
-  const canvas = cropper.getCroppedCanvas({
-    maxWidth: 1920,
-    maxHeight: 1920,
-    fillColor: '#fff',
-    imageSmoothingEnabled: true,
-    imageSmoothingQuality: 'high',
-  });
-  
-  const croppedImageData = canvas.toDataURL('image/jpeg', 0.9);
-  
-  // Show final preview
-  document.getElementById('final-preview').src = croppedImageData;
-  document.getElementById('cropped-image-data').value = croppedImageData;
-  document.getElementById('final-preview-container').style.display = 'block';
-  
-  // Hide cropper
-  document.getElementById('image-cropper-container').style.display = 'none';
-  
-  updateFinalPreviewStyle();
+  try {
+    const canvas = cropper.getCroppedCanvas({
+      maxWidth: 1920,
+      maxHeight: 1920,
+      fillColor: '#fff',
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: 'high',
+    });
+    
+    if (!canvas) {
+      alert('❌ Error al recortar la imagen. Por favor, intenta nuevamente.');
+      return;
+    }
+    
+    const croppedImageData = canvas.toDataURL('image/jpeg', 0.9);
+    
+    // Show final preview
+    document.getElementById('final-preview').src = croppedImageData;
+    document.getElementById('cropped-image-data').value = croppedImageData;
+    document.getElementById('final-preview-container').style.display = 'block';
+    
+    // Hide cropper
+    document.getElementById('image-cropper-container').style.display = 'none';
+    
+    updateFinalPreviewStyle();
+  } catch (e) {
+    console.error('Error cropping image:', e);
+    alert('❌ Error al procesar el recorte. Por favor, intenta nuevamente.');
+  }
 }
 
 function editCrop() {
@@ -238,6 +426,25 @@ function editCrop() {
 
 function closeCropper() {
   document.getElementById('image-cropper-container').style.display = 'none';
+  
+  // Show initial preview again if we have an image
+  if (originalImageSrc) {
+    showInitialPreview(originalImageSrc);
+  } else {
+    document.getElementById('initial-preview-container').style.display = 'none';
+    document.getElementById('final-preview-container').style.display = 'none';
+    
+    // Clear inputs
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) fileInput.value = '';
+    
+    const urlInput = document.getElementById('image-url-input');
+    if (urlInput) urlInput.value = '';
+    
+    // Clear data
+    document.getElementById('cropped-image-data').value = '';
+  }
+  
   if (cropper) {
     cropper.destroy();
     cropper = null;

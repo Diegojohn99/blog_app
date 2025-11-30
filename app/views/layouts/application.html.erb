@@ -167,6 +167,134 @@
         border: 1px solid var(--border-color);
       }
       .auth-wrapper h2 { margin-top: 0; color: var(--text-main); text-align: center; margin-bottom: 20px; }
+
+      /* Mobile Menu */
+      .mobile-menu-btn {
+        display: none;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--text-main);
+        padding: 5px;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        /* Navigation */
+        .nav-content {
+          padding: 0 15px;
+        }
+
+        .logo {
+          font-size: 1.4rem;
+        }
+
+        .mobile-menu-btn {
+          display: block;
+        }
+
+        .nav-links {
+          display: none;
+          position: absolute;
+          top: var(--header-height);
+          left: 0;
+          right: 0;
+          background: white;
+          flex-direction: column;
+          padding: 20px;
+          border-bottom: 1px solid var(--border-color);
+          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          gap: 15px;
+          align-items: flex-start;
+        }
+
+        .nav-links.active {
+          display: flex;
+        }
+
+        .nav-links > div[style*="height: 24px"] {
+          display: none;
+        }
+
+        /* Container */
+        .container {
+          padding: 0 15px;
+          margin: 20px auto;
+        }
+
+        /* Cards - Stack vertically on mobile */
+        .card {
+          flex-direction: column;
+        }
+
+        .card-image {
+          width: 100%;
+          height: 200px;
+        }
+
+        .card-content {
+          padding: 15px;
+        }
+
+        .card-title {
+          font-size: 1.1rem;
+        }
+
+        .card-meta {
+          flex-direction: column;
+          gap: 5px;
+        }
+
+        .card-meta > div[style*="float: right"] {
+          float: none !important;
+          margin-top: 10px;
+        }
+
+        /* Forms */
+        .auth-wrapper {
+          margin: 20px auto;
+          padding: 20px;
+        }
+
+        /* Buttons */
+        .btn-primary, .btn-outline {
+          padding: 10px 16px;
+          font-size: 0.9rem;
+        }
+
+        /* Typography */
+        h1 {
+          font-size: 1.5rem !important;
+        }
+
+        h2 {
+          font-size: 1.3rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .logo {
+          font-size: 1.2rem;
+        }
+
+        .card-image {
+          height: 180px;
+        }
+
+        .card-content {
+          padding: 12px;
+        }
+
+        .card-title {
+          font-size: 1rem;
+        }
+
+        .btn-primary, .btn-outline {
+          padding: 8px 14px;
+          font-size: 0.85rem;
+        }
+      }
     </style>
   </head>
 
@@ -177,7 +305,9 @@
           Blog<span>App</span>!
         <% end %>
         
-        <div class="nav-links">
+        <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+        
+        <div class="nav-links" id="nav-links">
           <% if user_signed_in? %>
             <%= link_to "Inicio", articles_path %>
             <% if can? :read, :dashboard %>
@@ -195,6 +325,23 @@
         </div>
       </div>
     </nav>
+
+    <script>
+      function toggleMobileMenu() {
+        const navLinks = document.getElementById('nav-links');
+        navLinks.classList.toggle('active');
+      }
+
+      // Close menu when clicking outside
+      document.addEventListener('click', function(event) {
+        const navLinks = document.getElementById('nav-links');
+        const menuBtn = document.querySelector('.mobile-menu-btn');
+        
+        if (!navLinks.contains(event.target) && !menuBtn.contains(event.target)) {
+          navLinks.classList.remove('active');
+        }
+      });
+    </script>
 
     <div class="container">
       <% if notice %>

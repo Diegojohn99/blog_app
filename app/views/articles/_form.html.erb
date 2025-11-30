@@ -41,7 +41,7 @@
     <!-- URL Tab -->
     <div id="image-url-tab" style="display: none;">
       <%= form.text_field :image_url, id: "image-url-input", placeholder: "https://ejemplo.com/imagen.jpg", style: "width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px;" %>
-      <button type="button" onclick="loadImageFromUrl()" style="padding: 8px 16px; background: var(--yahoo-purple); color: white; border: none; border-radius: 4px; cursor: pointer;">
+      <button type="button" onclick="loadImageFromUrl(event)" style="padding: 8px 16px; background: var(--yahoo-purple); color: white; border: none; border-radius: 4px; cursor: pointer;">
         Cargar Imagen
       </button>
     </div>
@@ -150,7 +150,11 @@
 <% end %>
 
 <script>
-  // Handle form submission to prevent sending both file and cropped data
+  // Global variables
+  let cropper = null;
+  let originalImageSrc = null;
+
+  // Handle form submission and initialization
   document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('form');
     if (form) {
@@ -166,16 +170,16 @@
         }
       });
     }
+
+    // Initialize with existing image if present
+    <% if article.image.attached? %>
+      originalImageSrc = "<%= url_for(article.image) %>";
+      showInitialPreview(originalImageSrc);
+    <% elsif article.image_url.present? %>
+      originalImageSrc = "<%= article.image_url %>";
+      showInitialPreview(originalImageSrc);
+    <% end %>
   });
-</script>
-
-<!-- Cropper.js CDN -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
-
-<script>
-let cropper = null;
-let originalImageSrc = null;
 
 function showImageTab(tab) {
   const uploadTab = document.getElementById('image-upload-tab');
@@ -190,6 +194,11 @@ function showImageTab(tab) {
     uploadBtn.style.color = 'white';
     urlBtn.style.background = '#e0e4e9';
     urlBtn.style.color = '#333';
+    
+    // Clear URL input when switching to upload
+    const urlInput = document.getElementById('image-url-input');
+    if (urlInput) urlInput.value = '';
+    
   } else {
     uploadTab.style.display = 'none';
     urlTab.style.display = 'block';
@@ -197,12 +206,26 @@ function showImageTab(tab) {
     uploadBtn.style.color = '#333';
     urlBtn.style.background = 'var(--yahoo-purple)';
     urlBtn.style.color = 'white';
+    
+    // Clear file input when switching to URL
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) fileInput.value = '';
   }
+  
+  // Clear any preview/crop data when switching tabs
+  document.getElementById('cropped-image-data').value = '';
+  document.getElementById('initial-preview-container').style.display = 'none';
+  document.getElementById('image-cropper-container').style.display = 'none';
+  document.getElementById('final-preview-container').style.display = 'none';
+  originalImageSrc = null;
 }
 
 function previewImage(event) {
   const file = event.target.files[0];
   if (file) {
+    // Clear URL input to avoid conflicts
+    document.getElementById('image-url-input').value = '';
+    
     // Validate file type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!validTypes.includes(file.type)) {
@@ -237,8 +260,12 @@ function previewImage(event) {
   }
 }
 
-function loadImageFromUrl() {
+function loadImageFromUrl(event) {
   const url = document.getElementById('image-url-input').value.trim();
+  
+  // Clear file input to avoid conflicts
+  const fileInput = document.querySelector('input[type="file"]');
+  if (fileInput) fileInput.value = '';
   
   if (!url) {
     alert('⚠️ Por favor, ingresa una URL de imagen.');
@@ -322,8 +349,15 @@ function useImageAsIs() {
   
   // Show final preview with the original image
   document.getElementById('final-preview').src = originalImageSrc;
-  document.getElementById('cropped-image-data').value = originalImageSrc;
   document.getElementById('final-preview-container').style.display = 'block';
+  
+  // Only set cropped-image-data if it's a base64 string (new file upload)
+  // If it's a URL (existing image or URL input), we don't need to send it as cropped data
+  if (originalImageSrc.startsWith('data:')) {
+    document.getElementById('cropped-image-data').value = originalImageSrc;
+  } else {
+    document.getElementById('cropped-image-data').value = '';
+  }
   
   updateFinalPreviewStyle();
 }
